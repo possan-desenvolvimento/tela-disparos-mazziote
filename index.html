@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendar Disparos - Mazziote Calçados - Atacado de calçados </title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Cabeçalho -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-shoe-prints logo-icon"></i>
+                <div class="logo-text">
+                    <h1>Mazziote Calçados - Atacado de calçados</h1>
+                    <p>Agendamento de Disparos</p>
+                </div>
+            </div>
+            <div class="status-indicator" id="statusIndicator">
+                <i class="fas fa-circle status-dot"></i>
+                <span class="status-text">Conectado</span>
+            </div>
+        </header>
+
+        <!-- Formulário Principal -->
+        <main class="main-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-paper-plane"></i> Novo Agendamento</h2>
+                    <p>Preencha os dados para programar um disparo</p>
+                </div>
+
+                <form id="disparoForm" class="form">
+                    <!-- Data e Hora -->
+                    <div class="datetime-section">
+                        <div class="form-group">
+                            <label for="data">
+                                <i class="fas fa-calendar-alt"></i> Data do Disparo
+                            </label>
+                            <div class="input-with-icon">
+                                <input type="date" id="data" required>
+                                <i class="fas fa-calendar input-icon"></i>
+                            </div>
+                            <small class="helper-text">Selecione uma data futura</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hora">
+                                <i class="fas fa-clock"></i> Hora do Disparo
+                            </label>
+                            <div class="input-with-icon">
+                                <input type="time" id="hora" required>
+                                <i class="fas fa-clock input-icon"></i>
+                            </div>
+                            <small class="helper-text">Horário de Brasília</small>
+                        </div>
+                    </div>
+
+                    <!-- Mensagem -->
+                    <div class="form-group">
+                        <label for="mensagem">
+                            <i class="fas fa-comment-dots"></i> Mensagem
+                        </label>
+                        <div class="textarea-container">
+                            <textarea 
+                                id="mensagem" 
+                                placeholder="Digite sua mensagem aqui... Exemplo: 'Olá! Seu pedido de tênis está pronto para retirada. Venha até nossa loja!'"
+                                maxlength="500"
+                                required
+                            ></textarea>
+                            <div class="textarea-footer">
+                                <div class="char-counter">
+                                    <span id="charCount">0</span>/500
+                                </div>
+                                <button type="button" class="btn-tooltip" title="Dicas de mensagem">
+                                    <i class="fas fa-lightbulb"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <small class="helper-text">
+                            <i class="fas fa-info-circle"></i> A mensagem será enviada no horário agendado
+                        </small>
+                    </div>
+
+                    <!-- Destinatário (opcional para futuro) -->
+                    <div class="form-group">
+                        <label for="destinatario">
+                            <i class="fas fa-user"></i> Destinatário (Opcional)
+                        </label>
+                        <input 
+                            type="text" 
+                            id="destinatario" 
+                            placeholder="Nome ou telefone do cliente"
+                        >
+                        <small class="helper-text">Deixe em branco para disparo geral</small>
+                    </div>
+
+                    <!-- Botões de Ação -->
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="btnPreview">
+                            <i class="fas fa-eye"></i> Pré-visualizar
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="btnSubmit">
+                            <i class="fas fa-calendar-plus"></i> Agendar Disparo
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Agendamentos Recentes -->
+            <div class="card recent-schedule">
+                <div class="card-header">
+                    <h3><i class="fas fa-history"></i> Agendamentos Recentes</h3>
+                    <button class="btn-refresh" id="btnRefresh">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div class="schedule-list" id="scheduleList">
+                    <!-- Lista será preenchida via JavaScript -->
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-times"></i>
+                        <p>Nenhum agendamento realizado</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Modal de Pré-visualização -->
+        <div class="modal" id="previewModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-eye"></i> Pré-visualização</h3>
+                    <button class="btn-close" id="btnCloseModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="preview-card">
+                        <div class="preview-header">
+                            <strong>📅 Data/Hora:</strong>
+                            <span id="previewDateTime">--/--/---- --:--</span>
+                        </div>
+                        <div class="preview-message">
+                            <strong>💬 Mensagem:</strong>
+                            <p id="previewMessage">Nenhuma mensagem</p>
+                        </div>
+                        <div class="preview-footer">
+                            <small>Esta é uma simulação do disparo</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast de Notificação -->
+        <div class="toast" id="toast">
+            <div class="toast-content">
+                <i class="fas fa-check-circle toast-icon"></i>
+                <span class="toast-message">Disparo agendado com sucesso!</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
