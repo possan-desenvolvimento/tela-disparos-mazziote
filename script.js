@@ -1,11 +1,18 @@
-// Configurações
+// ==============================================
+// CONFIGURAÇÕES DO SISTEMA
+// ==============================================
+
+// ⚠️ IMPORTANTE: Mude para a URL do SEU back-end Spring Boot
 const CONFIG = {
-    API_URL: 'https://seu-n8n-webhook.com/webhook/agendamentos',
+    API_URL: 'http://localhost:8082/api/agendamentos',  // ✅ URL do SEU back-end
     MAX_CHARS: 500,
     STORAGE_KEY: 'calcados_agendamentos'
 };
 
-// Elementos DOM
+// ==============================================
+// ELEMENTOS DO DOM
+// ==============================================
+
 const elements = {
     form: document.getElementById('disparoForm'),
     data: document.getElementById('data'),
@@ -25,22 +32,33 @@ const elements = {
     statusIndicator: document.getElementById('statusIndicator')
 };
 
-// Estado da aplicação
+// ==============================================
+// ESTADO DA APLICAÇÃO
+// ==============================================
+
 const state = {
     agendamentos: [],
     isSubmitting: false,
     connectionStatus: true
 };
 
-// Inicialização
+// ==============================================
+// FUNÇÕES DE INICIALIZAÇÃO
+// ==============================================
+
 function init() {
+    console.log('🚀 Inicializando sistema de agendamento...');
+    console.log('🔗 URL do back-end:', CONFIG.API_URL);
+    
     setupEventListeners();
     loadFromStorage();
     setupDefaultDateTime();
     updateScheduleList();
+    
+    // Testa conexão com o back-end
+    testBackendConnection();
 }
 
-// Configura listeners de eventos
 function setupEventListeners() {
     // Contador de caracteres
     elements.mensagem.addEventListener('input', updateCharCount);
@@ -77,7 +95,6 @@ function setupEventListeners() {
     document.addEventListener('keydown', handleKeyboardShortcuts);
 }
 
-// Configura data/hora padrão
 function setupDefaultDateTime() {
     const agora = new Date();
     const dataHoje = agora.toISOString().split('T')[0];
@@ -89,12 +106,14 @@ function setupDefaultDateTime() {
     elements.hora.value = horaFormatada;
 }
 
-// Atualiza contador de caracteres
+// ==============================================
+// FUNÇÕES DE UTILIDADE
+// ==============================================
+
 function updateCharCount() {
     const length = elements.mensagem.value.length;
     elements.charCount.textContent = length;
     
-    // Atualiza classes para feedback visual
     elements.charCount.className = '';
     if (length > CONFIG.MAX_CHARS * 0.9) {
         elements.charCount.classList.add('danger');
@@ -103,7 +122,6 @@ function updateCharCount() {
     }
 }
 
-// Valida data e hora
 function validateDateTime() {
     if (!elements.data.value || !elements.hora.value) return true;
     
@@ -120,7 +138,6 @@ function validateDateTime() {
     return true;
 }
 
-// Mostra pré-visualização
 function showPreview() {
     if (!validateDateTime()) return;
     
@@ -133,13 +150,15 @@ function showPreview() {
     elements.previewModal.classList.add('active');
 }
 
-// Formata data
 function formatDate(dateString) {
     const date = new Date(dateString);
     return date.toLocaleDateString('pt-BR');
 }
 
-// Manipula envio do formulário
+// ==============================================
+// FUNÇÕES DE ENVIO PARA O BACK-END
+// ==============================================
+
 async function handleSubmit(e) {
     e.preventDefault();
     
@@ -167,8 +186,8 @@ async function handleSubmit(e) {
     setSubmittingState(true);
     
     try {
-        // Envia para o n8n (simulação)
-        const success = await sendToN8N(agendamento);
+        // ✅ ENVIA PARA O BACK-END SPRING BOOT
+        const success = await sendToBackend(agendamento);
         
         if (success) {
             // Salva localmente
@@ -195,29 +214,62 @@ async function handleSubmit(e) {
     }
 }
 
-// Envia para o n8n (simulação)
-async function sendToN8N(agendamento) {
-    // Simula delay de rede
-    await new Promise(resolve => setTimeout(resolve, 1000));
+// ⚠️ FUNÇÃO MODIFICADA: Agora envia para SEU back-end
+async function sendToBackend(agendamento) {
+    console.log('📤 Enviando dados para o back-end:', agendamento);
     
-    // Em produção, descomente isso:
-    /*
-    const response = await fetch(CONFIG.API_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(agendamento)
-    });
-    
-    return response.ok;
-    */
-    
-    // Simulação de sucesso
-    return true;
+    try {
+        // ⚠️ IMPORTANTE: Seu back-end usa @RequestParam, não @RequestBody
+        // Portanto, envie como application/x-www-form-urlencoded
+        const response = await fetch(CONFIG.API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                data: agendamento.data,
+                hora: agendamento.hora,
+                mensagem: agendamento.mensagem,
+                destinatario: agendamento.destinatario || ''
+            })
+        });
+        
+        console.log('📥 Resposta do servidor:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Erro do servidor:', errorText);
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ Sucesso! Dados recebidos:', data);
+        return true;
+        
+    } catch (error) {
+        console.error('💥 Erro completo:', error);
+        return false;
+    }
 }
 
-// Atualiza estado de envio
+// Testa conexão com o back-end
+async function testBackendConnection() {
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/status`);
+        if (response.ok) {
+            console.log('✅ Back-end conectado com sucesso!');
+        } else {
+            console.warn('⚠️ Back-end respondendo com erro:', response.status);
+        }
+    } catch (error) {
+        console.error('❌ Não foi possível conectar ao back-end:', error);
+    }
+}
+
+// ==============================================
+// FUNÇÕES DE INTERFACE
+// ==============================================
+
 function setSubmittingState(isSubmitting) {
     state.isSubmitting = isSubmitting;
     elements.btnSubmit.disabled = isSubmitting;
@@ -226,7 +278,6 @@ function setSubmittingState(isSubmitting) {
         : '<i class="fas fa-calendar-plus"></i> Agendar Disparo';
 }
 
-// Mostra toast de notificação
 function showToast(message, isError = false) {
     const toast = elements.toast;
     const icon = toast.querySelector('.toast-icon');
@@ -243,7 +294,10 @@ function showToast(message, isError = false) {
     }, 3000);
 }
 
-// Salva agendamento no localStorage
+// ==============================================
+// FUNÇÕES DE ARMAZENAMENTO LOCAL
+// ==============================================
+
 function saveAgendamento(agendamento) {
     state.agendamentos.unshift(agendamento);
     
@@ -255,7 +309,6 @@ function saveAgendamento(agendamento) {
     localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(state.agendamentos));
 }
 
-// Carrega do localStorage
 function loadFromStorage() {
     const saved = localStorage.getItem(CONFIG.STORAGE_KEY);
     if (saved) {
@@ -263,7 +316,6 @@ function loadFromStorage() {
     }
 }
 
-// Atualiza lista de agendamentos
 function updateScheduleList() {
     const scheduleList = elements.scheduleList;
     
@@ -299,7 +351,10 @@ function updateScheduleList() {
     `).join('');
 }
 
-// Edita agendamento
+// ==============================================
+// FUNÇÕES DE MANIPULAÇÃO DE AGENDAMENTOS
+// ==============================================
+
 function editAgendamento(id) {
     const agendamento = state.agendamentos.find(a => a.id === id);
     if (!agendamento) return;
@@ -320,7 +375,6 @@ function editAgendamento(id) {
     showToast('✏️ Agendamento carregado para edição');
 }
 
-// Exclui agendamento
 function deleteAgendamento(id) {
     if (!confirm('Tem certeza que deseja excluir este agendamento?')) return;
     
@@ -331,7 +385,10 @@ function deleteAgendamento(id) {
     showToast('🗑️ Agendamento excluído');
 }
 
-// Mostra dicas de mensagem
+// ==============================================
+// FUNÇÕES AUXILIARES
+// ==============================================
+
 function showTips() {
     const tips = [
         "Lembrete: Seu calçado está pronto para retirada!",
@@ -347,7 +404,6 @@ function showTips() {
     showToast('💡 Dica aplicada!');
 }
 
-// Manipula atalhos de teclado
 function handleKeyboardShortcuts(e) {
     // Ctrl + Enter para enviar
     if (e.ctrlKey && e.key === 'Enter') {
@@ -366,7 +422,6 @@ function handleKeyboardShortcuts(e) {
     }
 }
 
-// Simula verificação de conexão
 function checkConnection() {
     const statusDot = elements.statusIndicator.querySelector('.status-dot');
     const statusText = elements.statusIndicator.querySelector('.status-text');
@@ -384,15 +439,17 @@ function checkConnection() {
     }
 }
 
-// Evento de conexão
+// ==============================================
+// INICIALIZAÇÃO E EVENTOS
+// ==============================================
+
 window.addEventListener('online', checkConnection);
 window.addEventListener('offline', checkConnection);
 
-// Inicializa a aplicação quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', () => {
     init();
     checkConnection();
-    setInterval(checkConnection, 30000); // Verifica a cada 30 segundos
+    setInterval(checkConnection, 30000);
 });
 
 // Expõe funções globais para os botões HTML
