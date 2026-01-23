@@ -3,10 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agendar Disparos - Mazziote Calçados - Atacado de calçados </title>
+    <title>Agendar Disparos - Mazziote Calçados - Atacado de calçados</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos para os novos botões de edição */
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(255, 152, 0, 0.2);
+        }
+        
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(255, 152, 0, 0.3);
+        }
+        
+        .btn-warning:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(220, 53, 69, 0.2);
+        }
+        
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(220, 53, 69, 0.3);
+        }
+        
+        /* Ajusta espaçamento dos botões */
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        /* Estilo visual para modo edição */
+        .editing-mode .card-header {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border-left: 4px solid #ffc107;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -27,7 +84,7 @@
 
         <!-- Formulário Principal -->
         <main class="main-content">
-            <div class="card">
+            <div class="card" id="formCard">
                 <div class="card-header">
                     <h2><i class="fas fa-paper-plane"></i> Novo Agendamento</h2>
                     <p>Preencha os dados para programar um disparo</p>
@@ -85,7 +142,7 @@
                         </small>
                     </div>
 
-                    <!-- Destinatário (opcional para futuro) -->
+                    <!-- Destinatário (opcional) -->
                     <div class="form-group">
                         <label for="destinatario">
                             <i class="fas fa-user"></i> Destinatário (Opcional)
@@ -100,11 +157,24 @@
 
                     <!-- Botões de Ação -->
                     <div class="form-actions">
+                        <!-- Botão de Pré-visualização -->
                         <button type="button" class="btn btn-secondary" id="btnPreview">
                             <i class="fas fa-eye"></i> Pré-visualizar
                         </button>
+                        
+                        <!-- Botão PRINCIPAL para NOVOS agendamentos -->
                         <button type="submit" class="btn btn-primary" id="btnSubmit">
                             <i class="fas fa-calendar-plus"></i> Agendar Disparo
+                        </button>
+                        
+                        <!-- NOVO: Botão para SALVAR EDIÇÃO (aparece só durante edição) -->
+                        <button type="button" class="btn btn-warning" id="btnSaveEdit" style="display: none;">
+                            <i class="fas fa-save"></i> Salvar Edição
+                        </button>
+                        
+                        <!-- NOVO: Botão para CANCELAR EDIÇÃO -->
+                        <button type="button" class="btn btn-danger" id="btnCancelEdit" style="display: none;">
+                            <i class="fas fa-times"></i> Cancelar
                         </button>
                     </div>
                 </form>
